@@ -87,7 +87,7 @@ const buyServer = (ns, ram) => {
 
 /** @param {NS} ns */
 const notifyPurchase = (ns, server, ram) => {
-  ns.tprint("\nNEW SERVER BOUGHT!!: ", `${server} (${ram}) ` ,"\n")
+  ns.tprint("\nNEW SERVER BOUGHT!!: ", `${server} (${ram} GB)` ,"\n")
 }
 
 /** @param {NS} ns */
