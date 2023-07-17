@@ -78,7 +78,6 @@ const distributeScripts = (ns, serverList = [], target) => {
     let assignedGrowQuantity = 0
     let assignedHackQuantity = 0
     let assignedWeakedQnatity = 0
-    debugger
     serverList.forEach(server => {
         let assignedQuantity = 0
         const serverRam = ns.getServerMaxRam(server)
@@ -166,7 +165,7 @@ const killAllScripts = (ns, serverList) => {
  * @param {string[]} serverList
 */
 const getServerToHack = (ns, serverList) => {
-    const { server } = serverList.reduce((acc, server) => {
+    return TARGET ?? serverList.reduce((acc, server) => {
         const maxMoney = ns.getServerMaxMoney(server);
         const serverGrouth = ns.getServerGrowth(server);
         const serverGrowTime = ns.getGrowTime(server);
@@ -178,6 +177,5 @@ const getServerToHack = (ns, serverList) => {
             acc = { server, score }
 
         return acc
-    }, { server: '', score: 0 })
-    return TARGET ?? server
+    }, { server: '', score: 0 }).server
 }
