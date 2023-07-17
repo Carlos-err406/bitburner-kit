@@ -1,4 +1,7 @@
-const self = 'backgroundprocess'
+const HOSTNAME = 'backgroundprocess'
+const SCRIPT_NAME = 'scripts/backgroundprocess/buyservers.js'
+const REFRESHER = 'scripts/backgroundprocess/refresher.js'
+const NEW_SERVER_NAME = 'host'
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -20,9 +23,9 @@ export async function main(ns) {
     } else {
       const maxRamBought = getMaxRamBought(ns, servers)
       if (canBuy(ns, maxRamBought, money)) {
+        runRefresh(ns)
         const serverName = buyServer(ns, maxRamBought)
         notifyPurchase(ns, serverName, maxRamBought)
-        runRefresh(ns)
       }
     }
     await ns.sleep(1000 * wait)
@@ -32,17 +35,17 @@ export async function main(ns) {
 /** @param {NS} ns */
 const haveToDelete = (ns, servers) => {
   const { length } = servers
-  const alreadyMaxed = servers.every(server => {
-    debugger
+  const maxedRam = servers.every(server => {
+    if (server === HOSTNAME) return true
     const serverRam = ns.getServerMaxRam(server)
     const exp = Math.log2(serverRam)
     return exp === 20
   })
-  if (alreadyMaxed && length === 25) {
-    ns.scriptKill('scripts/backgroundprocess/buyserver.js', self)
+  if (maxedRam && length === 25) {
+    ns.scriptKill(SCRIPT_NAME, HOSTNAME)
     return false
   } else
-    return length === 25 && !alreadyMaxed
+    return length === 25 && !maxedRam
 }
 /** @param {NS} ns */
 const canBuy = (ns, ram, money) => {
@@ -51,14 +54,14 @@ const canBuy = (ns, ram, money) => {
 }
 /** @param {NS} ns */
 const deletePurchasedServer = (ns, server) => {
-  if (server === self) return
+  if (server === HOSTNAME) return
   ns.killall(server)
   return ns.deleteServer(server)
 }
 
 /** @param {NS} ns */
 const getMinRamServer = (ns, serverList) => {
-  const servers = serverList.filter((server) => server !== self)
+  const servers = serverList.filter((server) => server !== HOSTNAME)
   const maxRam = Math.pow(2, 20)
   const host = servers.reduce((acc, server) => {
     const { ram } = acc
@@ -82,16 +85,16 @@ const getMaxRamBought = (ns, servers) => {
 }
 /** @param {NS} ns */
 const buyServer = (ns, ram) => {
-  return ns.purchaseServer('host', ram)
+  return ns.purchaseServer(NEW_SERVER_NAME, ram)
 }
 
 /** @param {NS} ns */
 const notifyPurchase = (ns, server, ram) => {
-  ns.tprint("\nNEW SERVER BOUGHT!!: ", `${server} (${ram} GB)` ,"\n")
+  ns.tprint("\nNEW SERVER BOUGHT!!: ", `${server} (${ram} GB)`, "\n")
 }
 
 /** @param {NS} ns */
 const runRefresh = (ns) => {
-  ns.killall(self, true)
-  ns.exec('scripts/backgroundprocess/refresher.js', self)
+  ns.killall(HOSTNAME, true)
+  ns.exec(REFRESHER, HOSTNAME)
 }
