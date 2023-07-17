@@ -1,10 +1,10 @@
-# Instructions for the bckgroundprocess files
+# Instructions for the backgroundprocess files
 
-The provided files contain two JavaScript scripts that are part of a background process for buying servers.
+The provided files contain two ns scripts that are part of a background process for buying servers.
 
 ## buyservers.js
 
-This script contains the main function that runs an infinite loop. In each iteration, the script checks if there are any servers that need to be deleted. If there are, it deletes the server with the minimum RAM and buys a new server with double the RAM. If there are no servers to delete, it buys a new server with the maximum RAM bought so far.
+This script contains the main function that runs an infinite loop. In each iteration, the script checks if there are any servers that need to be deleted (because you already own max number of servers). If there are, it deletes the server with the minimum RAM and buys a new server with double the RAM. If there are no servers to delete, it buys a new server with the maximum RAM bought so far.
 
 ## refresher.js
 
@@ -14,4 +14,4 @@ This script contains the main function that runs an infinite loop. In each itera
 
 # Specifications
 The `buyservers.js` script will kill itself once you have maximum amount of servers and all of them have $2^{20}$ GiB (wich is the maximum amount of RAM a server can have in the game)
-These are meant to run in a `16 GiB` server preferably named `backgroundprocess`, i you choose another name make sure to change it everywere else, since the server is excluded from some `ns.getPurchasedServers()` lists
+These are meant to run in a `16 GiB` server preferably named `backgroundprocess`, if you choose another name make sure to change it everywere else, since the server is excluded from some `ns.getPurchasedServers()` lists

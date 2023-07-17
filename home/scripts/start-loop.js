@@ -1,3 +1,11 @@
+const S_GROW = 'scripts/grow-loop.js'   //grow script location
+const S_HACK = 'scripts/hack-loop.js' // hack script location
+const S_WEAK = 'scripts/weaken-loop.js' // weaker script location
+const P_GROW = 0.5  // grow script thread percentage
+const P_WEAK = 0.3  // weaker script thread percentage
+const P_HACK = 1 - P_GROW - P_WEAK // hack script thread percentage
+const TARGET = 'joesguns' // force the hack target
+
 /** @param {NS} ns */
 export async function main(ns) {
     const openPortScriptFunctions = getOpenPortScriptFunctions(ns)
@@ -64,15 +72,12 @@ const getOpenPortScriptFunctions = (ns) => {
 const distributeScripts = (ns, serverList = [], target) => {
     const scriptRam = 1.75
     const totalThreadsQuantity = calcTotalThreads(ns, serverList, scriptRam)
-    const growQuantity = Math.floor(totalThreadsQuantity * 0.6);
-    const weakQuantity = Math.floor(totalThreadsQuantity * 0.3);
-    const hackQuantity = Math.floor(totalThreadsQuantity * 0.1);
+    const growQuantity = Math.floor(totalThreadsQuantity * P_GROW);
+    const weakQuantity = Math.floor(totalThreadsQuantity * P_WEAK);
+    const hackQuantity = Math.floor(totalThreadsQuantity * P_HACK);
     let assignedGrowQuantity = 0
     let assignedHackQuantity = 0
     let assignedWeakedQnatity = 0
-    const growScript = 'scripts/grow-loop.js'
-    const hackScript = 'scripts/hack-loop.js'
-    const weakenScript = 'scripts/weaken-loop.js'
     debugger
     serverList.forEach(server => {
         let assignedQuantity = 0
@@ -81,21 +86,21 @@ const distributeScripts = (ns, serverList = [], target) => {
         if (assignedGrowQuantity < growQuantity) {
             assignedQuantity = Math.min(growQuantity - assignedGrowQuantity, Math.floor(serverRam / scriptRam))
             assignedGrowQuantity += assignedQuantity
-            copyAndRun(ns, growScript, server, target, assignedQuantity)
+            copyAndRun(ns, S_GROW, server, target, assignedQuantity)
 
             let usedServerRam = ns.getServerUsedRam(server)
             let leftRam = serverRam - usedServerRam
             if (assignedGrowQuantity === growQuantity && leftRam > scriptRam) {
                 assignedQuantity = Math.min(weakQuantity - assignedWeakedQnatity, Math.floor(leftRam / scriptRam))
                 assignedWeakedQnatity += assignedQuantity
-                copyAndRun(ns, weakenScript, server, target, assignedQuantity)
+                copyAndRun(ns, S_WEAK, server, target, assignedQuantity)
 
                 usedServerRam = ns.getServerUsedRam(server)
                 leftRam = serverRam - usedServerRam
                 if (assignedWeakedQnatity === weakQuantity && leftRam > scriptRam) {
                     assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(leftRam / scriptRam))
                     assignedHackQuantity += assignedQuantity
-                    copyAndRun(ns, hackScript, server, target, assignedQuantity)
+                    copyAndRun(ns, S_HACK, server, target, assignedQuantity)
                 }
             }
         }
@@ -103,21 +108,21 @@ const distributeScripts = (ns, serverList = [], target) => {
         else if (assignedWeakedQnatity < weakQuantity) {
             assignedQuantity = Math.min(weakQuantity - assignedWeakedQnatity, Math.floor(serverRam / scriptRam))
             assignedWeakedQnatity += assignedQuantity
-            copyAndRun(ns, weakenScript, server, target, assignedQuantity)
+            copyAndRun(ns, S_WEAK, server, target, assignedQuantity)
 
             let usedServerRam = ns.getServerUsedRam(server)
             let leftRam = serverRam - usedServerRam
             if (assignedWeakedQnatity === weakQuantity && leftRam > scriptRam) {
                 assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(leftRam / scriptRam))
                 assignedHackQuantity += assignedQuantity
-                copyAndRun(ns, hackScript, server, target, assignedQuantity)
+                copyAndRun(ns, S_HACK, server, target, assignedQuantity)
             }
         }
 
         else if (assignedHackQuantity < hackQuantity) {
             assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(serverRam / scriptRam))
             assignedHackQuantity += assignedQuantity
-            copyAndRun(ns, hackScript, server, target, assignedQuantity)
+            copyAndRun(ns, S_HACK, server, target, assignedQuantity)
         }
     })
 
@@ -174,5 +179,5 @@ const getServerToHack = (ns, serverList) => {
 
         return acc
     }, { server: '', score: 0 })
-    return server
+    return TARGET ?? server
 }
