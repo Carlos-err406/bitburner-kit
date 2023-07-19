@@ -10,7 +10,7 @@ export async function main(ns) {
     if (servers.length === 25) {//upgrade existing servers
       const { server, ram } = getMinRamServer(ns, servers)
       if (canUpgrade(ns, money, server, ram)) {
-        upgrade(ns, server, ram)
+        upgrade(ns, server, ram * 2)
         notifyPurchase(ns, server, ram * 2)
         runRefresh(ns)
       }

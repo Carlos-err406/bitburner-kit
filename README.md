@@ -63,7 +63,7 @@ Highly recommended extension "bitburner.bitburner-vscode-integration"
 ```json
 //.vscode/settings.json
 {
-  "bitburner.authToken": "",
+  "bitburner.authToken": "<YOUR AUTH TOKEN>",
   "bitburner.scriptRoot": "./home",
   "bitburner.fileWatcher.enable": true,
   "bitburner.showPushSuccessNotification": true,
