@@ -1,3 +1,5 @@
+import { HackTreeInitConfig } from "scripts/config/config"
+const { weaken } = HackTreeInitConfig
 /** @param {NS} ns */
 export async function main(ns) {
     const target = ns.args[0]
@@ -7,6 +9,6 @@ export async function main(ns) {
     while (true) {
         const timeToWait = Math.floor(Math.random() * (max - min + 1) + min)
         await ns.sleep(timeToWait * 1000)
-        await ns.weaken(target)
+        await ns.weaken(target, { stock: weaken.stock })
     }
 }

@@ -1,9 +1,11 @@
+import { RefresherConfig } from "scripts/config/config"
+const { interval, script, host } = RefresherConfig
+
 /** @param {NS} ns */
 export async function main(ns) {
-    const { time } = ns.flags([['time', 3600]]) 
     while (true) {
-        ns.exec('scripts/start-loop.js', 'home')
-        ns.tprint("\nREFRESHING HACKS...\n")
-        await ns.sleep(1000 * time) //TODO when hacking level increases 10 levels?
+        ns.exec(script, host)
+        ns.tprint("\nREFRESHING HACK TREE...\n")
+        await ns.sleep(1000 * interval) //TODO when hacking level increases 10 levels?
     }
 }
