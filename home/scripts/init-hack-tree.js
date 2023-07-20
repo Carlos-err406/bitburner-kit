@@ -34,10 +34,10 @@ const getAllServers = (ns, currentServer = 'home', serverList = []) => {
 *   @param {Function[]} currentPortsQuantity
 */
 const getHackeableServers = (ns, serverList = [], openPortScriptFunctions) => {
-    const hackSkills = ns.getHackingLevel() * 0.7
+    const hackSkills = ns.getHackingLevel() //* 0.75
     const purchasedServer = ns.getPurchasedServers()
     const hackeable = serverList.filter(server => {
-        if (server === 'home') return true
+        if (exclude.includes(server)) return false
         else if (purchasedServer.includes(server)) return true
         const enoughHackSkills = ns.getServerRequiredHackingLevel(server) <= hackSkills
         const enoughPorts = ns.getServerNumPortsRequired(server) < openPortScriptFunctions.length
@@ -45,6 +45,7 @@ const getHackeableServers = (ns, serverList = [], openPortScriptFunctions) => {
         enoughHackSkills && enoughPorts && openPortScriptFunctions.forEach(script => script(server))
         return enoughHackSkills && enoughPorts && serverRam
     })
+    hackeable.push('home')
     return hackeable
 }
 
@@ -67,10 +68,7 @@ const getOpenPortScriptFunctions = (ns) => {
  * @param {string} target
 */
 const distributeScripts = (ns, serverList = [], target) => {
-    const totalThreadsQuantity = calcTotalThreads(ns, serverList, scriptRam)
-    const growQuantity = Math.floor(totalThreadsQuantity * grow.percentage);
-    const weakQuantity = Math.floor(totalThreadsQuantity * weaken.percentage);
-    const hackQuantity = Math.floor(totalThreadsQuantity * hack.percentage);
+    const { growQuantity, hackQuantity, weakQuantity } = getThreadDistribution(ns, serverList)
     let assignedGrowQuantity = 0
     let assignedHackQuantity = 0
     let assignedWeakedQnatity = 0
@@ -123,6 +121,19 @@ const distributeScripts = (ns, serverList = [], target) => {
 
 }
 
+const getThreadDistribution = (ns, serverList) => {
+    const totalThreadsQuantity = calcTotalThreads(ns, serverList)
+    const growQuantity = Math.floor(totalThreadsQuantity * grow.percentage);
+    const weakQuantity = Math.floor(totalThreadsQuantity * weaken.percentage);
+    const hackQuantity = Math.floor(totalThreadsQuantity * hack.percentage);
+    printThreadDistribution(ns, totalThreadsQuantity, growQuantity, weakQuantity, hackQuantity)
+    return { growQuantity, weakQuantity, hackQuantity }
+}
+
+const printThreadDistribution = (ns, totalThreads = 0, growQuantity = 0, weakQuantity = 0, hackQuantity = 0) => {
+    ns.tprint(`\n\tTHREADS: ${totalThreads}\n|-----------------------|\n| GROW\t\t${growQuantity}\t|\n| WEAKEN\t${weakQuantity}\t|\n| HACK\t\t${hackQuantity}\t|\n|-----------------------|`)
+
+}
 /** @param {NS} ns 
  * @param {string} script
  * @param {string} server
@@ -140,10 +151,10 @@ const copyAndRun = (ns, script, server, target, threads) => {
  * @param {string[]} serverList
  * @param {number} neededRam
 */
-const calcTotalThreads = (ns, serverList = [], neededRam) => {
+const calcTotalThreads = (ns, serverList = []) => {
     const result = serverList.reduce((acc, server) => {
         const serverRam = ns.getServerMaxRam(server)
-        acc += Math.floor(serverRam / neededRam)
+        acc += Math.floor(serverRam / scriptRam)
         return acc
     }, 0)
     return result
