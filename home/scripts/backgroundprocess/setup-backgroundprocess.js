@@ -4,7 +4,7 @@ const { hostname, minRam, neededScripts } = BuyServersConfig
 /** @param {NS} ns */
 export const main = async (ns) => {
     const servers = ns.getPurchasedServers()
-    if(servers.legth === 25){
+    if (servers.legth === 25) {
         ns.alert("Cant setup, max amount of servers reached")
         return
     }
@@ -16,7 +16,6 @@ export const main = async (ns) => {
         if (money > cost) {
             ns.purchaseServer(hostname, minRam)
             buyInitialServer = false
-            ns.alert("SERVER ", hostname, " BOUGHT!\nstarting process...")
         } else
             await ns.sleep(1000 * 60)
     }
