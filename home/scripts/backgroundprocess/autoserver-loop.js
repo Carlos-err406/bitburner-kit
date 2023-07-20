@@ -9,9 +9,10 @@ export async function main(ns) {
     const { money } = ns.getPlayer()
     if (servers.length === 25) {//upgrade existing servers
       const { server, ram } = getMinRamServer(ns, servers)
-      if (canUpgrade(ns, money, server, ram)) {
-        upgrade(ns, server, ram * 2)
-        notifyPurchase(ns, server, ram * 2)
+      const upgradeTo = ram * 2
+      if (canUpgrade(ns, money, server, upgradeTo)) {
+        upgrade(ns, server, upgradeTo)
+        notifyPurchase(ns, server, upgradeTo)
         runRefresh(ns)
       }
     } else {//buy new server
@@ -35,7 +36,7 @@ const canUpgrade = (ns, money, server, ram) => {
 }
 
 const upgrade = (ns, server, ram) => {
-  return ns.upgradePurchasedServer(server, ram * 2)
+  return ns.upgradePurchasedServer(server, ram)
 }
 /** @param {NS} ns */
 const killSelf = (ns, servers) => {
@@ -85,7 +86,7 @@ const buyServer = (ns, ram) => {
 
 /** @param {NS} ns */
 const notifyPurchase = (ns, server, ram) => {
-  ns.tprint("\nNEW SERVER!!: ", `${server} (${ns.formatRam(ram)})`, "\n")
+  ns.tprint("\nNEW SERVER!!\n----------------\n", `${server} (${ns.formatRam(ram)})`, "\n----------------")
 }
 
 /** @param {NS} ns */
