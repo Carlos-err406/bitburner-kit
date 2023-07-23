@@ -1,16 +1,15 @@
 import { HackTreeInitConfig } from "scripts/config/config"
-const { exclude, scriptRam, target: defaultTarget, grow, weaken, hack } = HackTreeInitConfig
+const { exclude, scriptRam, target, grow, weaken, hack } = HackTreeInitConfig
 
 /** @param {NS} ns */
 export async function main(ns) {
     const openPortScriptFunctions = getOpenPortScriptFunctions(ns)
     const servers = getAllServers(ns)
     const hackeable = getHackeableServers(ns, servers, openPortScriptFunctions)
-    let target = getServerToHack(ns, hackeable)
-    ns.tprint("\nTARGET SERVER: ", target, '\n')
+    ns.toast(`TARGET SERVER: ${target}`, ns.enums.ToastVariant.INFO, 5500)
 
     killAllScripts(ns, hackeable)
-    distributeScripts(ns, hackeable, target)
+    distributeScripts(ns, hackeable)
 }
 
 /** @param {NS} ns 
@@ -65,13 +64,12 @@ const getOpenPortScriptFunctions = (ns) => {
 
 /** @param {NS} ns 
  * @param {string[]} serverList
- * @param {string} target
 */
-const distributeScripts = (ns, serverList = [], target) => {
+const distributeScripts = (ns, serverList = []) => {
     const { growQuantity, hackQuantity, weakQuantity } = getThreadDistribution(ns, serverList)
     let assignedGrowQuantity = 0
     let assignedHackQuantity = 0
-    let assignedWeakedQnatity = 0
+    let assignedWeakQuantity = 0
     serverList.forEach(server => {
 
         let assignedQuantity = 0
@@ -79,43 +77,43 @@ const distributeScripts = (ns, serverList = [], target) => {
         if (assignedGrowQuantity < growQuantity) {
             assignedQuantity = Math.min(growQuantity - assignedGrowQuantity, Math.floor(serverRam / scriptRam))
             assignedGrowQuantity += assignedQuantity
-            copyAndRun(ns, grow.script, server, target, assignedQuantity)
+            copyAndRun(ns, grow.script, server, assignedQuantity)
 
             let usedServerRam = ns.getServerUsedRam(server)
             let ramLeft = serverRam - usedServerRam
             if (assignedGrowQuantity === growQuantity && ramLeft > scriptRam) {
-                assignedQuantity = Math.min(weakQuantity - assignedWeakedQnatity, Math.floor(ramLeft / scriptRam))
-                assignedWeakedQnatity += assignedQuantity
-                copyAndRun(ns, weaken.script, server, target, assignedQuantity)
+                assignedQuantity = Math.min(weakQuantity - assignedWeakQuantity, Math.floor(ramLeft / scriptRam))
+                assignedWeakQuantity += assignedQuantity
+                copyAndRun(ns, weaken.script, server, assignedQuantity)
 
                 usedServerRam = ns.getServerUsedRam(server)
                 ramLeft = serverRam - usedServerRam
-                if (assignedWeakedQnatity === weakQuantity && ramLeft > scriptRam) {
+                if (assignedWeakQuantity === weakQuantity && ramLeft > scriptRam) {
                     assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(ramLeft / scriptRam))
                     assignedHackQuantity += assignedQuantity
-                    copyAndRun(ns, hack.script, server, target, assignedQuantity)
+                    copyAndRun(ns, hack.script, server, assignedQuantity)
                 }
             }
         }
 
-        else if (assignedWeakedQnatity < weakQuantity) {
-            assignedQuantity = Math.min(weakQuantity - assignedWeakedQnatity, Math.floor(serverRam / scriptRam))
-            assignedWeakedQnatity += assignedQuantity
-            copyAndRun(ns, weaken.script, server, target, assignedQuantity)
+        else if (assignedWeakQuantity < weakQuantity) {
+            assignedQuantity = Math.min(weakQuantity - assignedWeakQuantity, Math.floor(serverRam / scriptRam))
+            assignedWeakQuantity += assignedQuantity
+            copyAndRun(ns, weaken.script, server, assignedQuantity)
 
             let usedServerRam = ns.getServerUsedRam(server)
             let ramLeft = serverRam - usedServerRam
-            if (assignedWeakedQnatity === weakQuantity && ramLeft > scriptRam) {
+            if (assignedWeakQuantity === weakQuantity && ramLeft > scriptRam) {
                 assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(ramLeft / scriptRam))
                 assignedHackQuantity += assignedQuantity
-                copyAndRun(ns, hack.script, server, target, assignedQuantity)
+                copyAndRun(ns, hack.script, server, assignedQuantity)
             }
         }
 
         else if (assignedHackQuantity < hackQuantity) {
             assignedQuantity = Math.min(hackQuantity - assignedHackQuantity, Math.floor(serverRam / scriptRam))
             assignedHackQuantity += assignedQuantity
-            copyAndRun(ns, hack.script, server, target, assignedQuantity)
+            copyAndRun(ns, hack.script, server, assignedQuantity)
         }
     })
 
@@ -131,18 +129,24 @@ const getThreadDistribution = (ns, serverList) => {
 }
 
 const printThreadDistribution = (ns, totalThreads = 0, growQuantity = 0, weakQuantity = 0, hackQuantity = 0) => {
-    ns.tprint(`\n\tTHREADS: ${totalThreads}\n|-----------------------|\n| GROW\t\t${growQuantity}\t|\n| WEAKEN\t${weakQuantity}\t|\n| HACK\t\t${hackQuantity}\t|\n|-----------------------|`)
+    let message = `\n\tTOTAL THREADS: ${totalThreads}\n`
+    // message += `\n\tTHREADS PER HOST: ${threadsPerHost}\n`
+    message += `\t-------------------------\n`
+    message += `\t| GROW\t\t${growQuantity}\t|\n`
+    message += `\t| WEAKEN\t${weakQuantity}\t|\n`
+    message += `\t| HACK\t\t${hackQuantity}\t|\n`
+    message += `\t-------------------------\n`
+    ns.tprint(message)
 
 }
 /** @param {NS} ns 
  * @param {string} script
  * @param {string} server
- * @param {string} target
  * @param {number} threads
 */
-const copyAndRun = (ns, script, server, target, threads) => {
+const copyAndRun = (ns, script, server, threads) => {
     ns.scp([script, 'scripts/config/config.js'], server)
-    ns.exec(script, server, { threads }, target)
+    threads > 0 && ns.exec(script, server, { threads }, target)
 
     //TODO: install backdoor
 }
@@ -169,24 +173,4 @@ const killAllScripts = (ns, serverList) => {
         ns.scriptKill(hack.script, server)
         ns.scriptKill(weaken.script, server)
     }
-}
-
-/** @param {NS} ns 
- * @param {string[]} serverList
-*/
-const getServerToHack = (ns, serverList) => {
-    if (defaultTarget.length > 0) return defaultTarget
-    return serverList.reduce((acc, server) => {
-        const maxMoney = ns.getServerMaxMoney(server);
-        const serverGrouth = ns.getServerGrowth(server);
-        const serverGrowTime = ns.getGrowTime(server);
-        const serverWeakenTime = ns.getWeakenTime(server);
-        const maxScore = acc.score
-        const score = Math.log2(maxMoney * 0.25 / serverGrouth * serverGrowTime - 5 * serverWeakenTime)
-
-        if (score > maxScore)
-            acc = { server, score }
-
-        return acc
-    }, { server: '', score: 0 }).server
 }

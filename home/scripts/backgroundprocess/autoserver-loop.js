@@ -1,5 +1,5 @@
 import { BuyServersConfig } from "scripts/config/config"
-const { interval, hostname, scriptNames, newServerName } = BuyServersConfig
+const { interval, hostname, scriptNames, newServerName, upgradeLimitExp } = BuyServersConfig
 
 /** @param {NS} ns */
 export async function main(ns) {
@@ -12,8 +12,13 @@ export async function main(ns) {
       const upgradeTo = ram * 2
       if (canUpgrade(ns, money, server, upgradeTo)) {
         upgrade(ns, server, upgradeTo)
-        notifyPurchase(ns, server, upgradeTo)
-        runRefresh(ns)
+        notifyUpgrade(ns, server, upgradeTo)
+        if (server === hostname && ns.scriptRunning(scriptNames.share, hostname)) {
+          ns.scriptKill(scriptNames.share, hostname)
+        }
+        const avalableRam = ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)
+        const threads = Math.floor(avalableRam / 4)
+        runRefresh(ns, threads)
       }
     } else {//buy new server
       const maxRamBought = getMaxRamBought(ns, servers)
@@ -30,7 +35,7 @@ export async function main(ns) {
 /** @param {NS} ns */
 const canUpgrade = (ns, money, server, ram) => {
   const exp = Math.log2(ram)
-  if (exp === 20) return false
+  if (exp === upgradeLimitExp) return false
   const cost = ns.getPurchasedServerUpgradeCost(server, ram)
   return money > cost
 }
@@ -42,10 +47,9 @@ const upgrade = (ns, server, ram) => {
 const killSelf = (ns, servers) => {
   const { length } = servers
   const maxedRam = servers.every(server => {
-    if (server === hostname) return true
     const serverRam = ns.getServerMaxRam(server)
     const exp = Math.log2(serverRam)
-    return exp === 20
+    return exp === upgradeLimitExp
   })
   if (maxedRam && length === 25) ns.scriptKill(scriptNames.buyservers, hostname)
 }
@@ -57,9 +61,8 @@ const canBuy = (ns, ram, money) => {
 
 /** @param {NS} ns */
 const getMinRamServer = (ns, serverList) => {
-  const servers = serverList.filter((server) => server !== hostname)
   const maxRam = Math.pow(2, 20)
-  const host = servers.reduce((acc, server) => {
+  const host = serverList.reduce((acc, server) => {
     const { ram } = acc
     const serverRam = ns.getServerMaxRam(server)
     if (serverRam < ram) {
@@ -84,13 +87,21 @@ const buyServer = (ns, ram) => {
   return ns.purchaseServer(newServerName, ram)
 }
 
+
 /** @param {NS} ns */
-const notifyPurchase = (ns, server, ram) => {
-  ns.tprint("\nNEW SERVER!!\n----------------\n", `${server} (${ns.formatRam(ram)})`, "\n----------------")
+const runRefresh = (ns, shareThreads) => {
+  ns.killall(hostname, true)
+  ns.exec(scriptNames.refresher, hostname, 1)
+  if (shareThreads)
+    ns.exec(scriptNames.share, hostname, shareThreads)
 }
 
 /** @param {NS} ns */
-const runRefresh = (ns) => {
-  ns.killall(hostname, true)
-  ns.exec(scriptNames.refresher, hostname)
+const notifyPurchase = (ns, server, ram) => {
+  ns.toast(`NEW SERVER: ${server} ${ns.formatRam(ram)}`, ns.enums.ToastVariant.SUCCESS, 5500)
+}
+
+/** @param {NS} ns */
+const notifyUpgrade = (ns, server, ram) => {
+  ns.toast(`UPGRADED: ${server} ${ns.formatRam(ram)}`, ns.enums.ToastVariant.SUCCESS, 5500)
 }
