@@ -1,7 +1,7 @@
 import { NS } from "@ns";
-import { BuyServersConfig } from "scripts/config/config";
+import { BackgroundProcessConfig } from "scripts/config/config";
 const { interval, hostname, scriptNames, newServerName, upgradeLimitExp } =
-  BuyServersConfig;
+  BackgroundProcessConfig;
 
 export const main = async (ns: NS) => {
   while (true) {

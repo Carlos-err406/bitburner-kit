@@ -1,5 +1,5 @@
-import { BuyServersConfig } from "scripts/config/config";
-const { hostname, minRam, neededScripts } = BuyServersConfig;
+import { BackgroundProcessConfig } from "scripts/config/config";
+const { hostname, minRam, copyToServer: neededScripts } = BackgroundProcessConfig;
 import { NS } from "@ns";
 
 export const main = async (ns: NS) => {

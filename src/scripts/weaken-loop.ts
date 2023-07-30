@@ -1,6 +1,6 @@
-import { HackTreeInitConfig } from "scripts/config/config";
+import { AttackInitConfig } from "scripts/config/config";
 import { NS } from "@ns";
-const { weaken } = HackTreeInitConfig;
+const { weaken } = AttackInitConfig;
 
 export const main = async (ns: NS) => {
   const target = ns.args[0] as string;

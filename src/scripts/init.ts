@@ -1,5 +1,5 @@
-import { HackTreeInitConfig } from "scripts/config/config";
-const { exclude, scriptRam, target, grow, weaken, hack } = HackTreeInitConfig;
+import { AttackInitConfig } from "scripts/config/config";
+const { exclude, scriptRam, target, grow, weaken, hack } = AttackInitConfig;
 import { NS } from "@ns";
 export const main = async (ns: NS) => {
   const openPortScriptFunctions = getOpenPortScriptFunctions(ns);

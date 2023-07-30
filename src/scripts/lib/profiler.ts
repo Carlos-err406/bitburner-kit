@@ -1,7 +1,7 @@
 import { NS } from "@ns";
-import { HackTreeInitConfig } from "scripts/config/config";
+import { AttackInitConfig } from "scripts/config/config";
 
-const { target: attackTarget } = HackTreeInitConfig;
+const { target: attackTarget } = AttackInitConfig;
 interface Profiling {
   money: {
     serverMaxMoney: string;

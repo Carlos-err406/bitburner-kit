@@ -1,5 +1,5 @@
-import { HackTreeInitConfig } from "scripts/config/config";
-const { hack } = HackTreeInitConfig;
+import { AttackInitConfig } from "scripts/config/config";
+const { hack } = AttackInitConfig;
 import { NS } from "@ns";
 
 export const main = async (ns: NS) => {

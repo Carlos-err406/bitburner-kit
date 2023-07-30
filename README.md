@@ -1,6 +1,7 @@
 # Table of Contents <!-- omit from toc -->
 
 - [Setup](#setup)
+  - [Config file](#config-file)
   - [Prerequisites](#prerequisites)
 - [Quick start](#quick-start)
   - [How to use](#how-to-use)
@@ -17,6 +18,72 @@ This kit is directly using the template, just adds some default scripts and chan
 [Step by step install](./BeginnersGuide.md#step-by-step-guide-to-setting-up-the-typescript-template-from-scratch)
 
 [Learn more about Typescript](https://www.typescriptlang.org/docs/)
+
+## Config file
+
+:warning: This is only if you choose to use this kit, the official template does not require this file
+
+Create a file `/scripts/config/config.ts` with the following contents:
+
+```ts
+import { NS } from "@ns";
+export const main = async (ns: NS) => {};
+
+// Configuration for buying servers
+const BackgroundProcessConfig = {
+  hostname: "backgroundprocess", // hostname for the server running the buy servers script and other scripts
+  minRam: 16, // minimum amount of RAM for new servers
+  interval: 60, // interval in seconds between buying new servers
+  newServerName: "host", // prefix for the names of new servers
+  upgradeLimitExp: 13, // maximum exponent for server RAM upgrades (2^13 = 8192); max 20
+  scriptNames: {
+    // names of scripts used by the backgroundprocess server
+    buyservers: "scripts/backgroundprocess/buyservers.js",
+    refresher: "scripts/backgroundprocess/refresher.js",
+    share: "scripts/share-loop.js",
+  },
+  copyToServer: {
+    // scripts that need to be copied to the backgroundprocess server
+    config: "scripts/config/config.js",
+    buyServers: "scripts/backgroundprocess/autoserver-loop.js",
+    refresher: "scripts/backgroundprocess/refresher.js",
+    share: "scripts/share-loop.js",
+  },
+};
+
+// Configuration for the refresher script
+const RefresherConfig = {
+  interval: 10000, // interval in seconds between refreshes
+  script: "scripts/init.js", // script to run on refresh
+  host: "home", // host to run the script on
+};
+
+// Configuration for the attack initialization script
+const AttackInitConfig = {
+  grow: {
+    script: "scripts/grow-loop.js", // grow script to run on target server
+    percentage: 0.71, // percentage of total threads to use for growing
+    stock: true, // whether or not to growing should affect stock market
+  },
+  weaken: {
+    script: "scripts/weaken-loop.js", // weaken script to run on target server
+    percentage: 0.16, // percentage of total threads to use for weakening
+    stock: false, // whether or not to weakening should affect stock market
+  },
+  hack: {
+    script: "scripts/hack-loop.js", // hack script to run on target server
+    percentage: 0.13, // percentage of total threads to use for hacking
+    stock: false, // whether or not to hacking should affect stock market
+  },
+  scriptRam: 1.75, // amount of RAM required by each attack script
+  exclude: [BackgroundProcessConfig.hostname], // servers to exclude from attack deployment
+  target: "n00dles", // target server for attacks
+};
+
+export { BackgroundProcessConfig, RefresherConfig, AttackInitConfig };
+```
+
+:warning: Those percentages should be adjusted accordingly to your stats, too much `hack.percentage` could deplete your `target`'s money.
 
 ## Prerequisites
 
@@ -44,7 +111,7 @@ For Bitburner to receive any files, you need to follow these steps:
 1. Make sure you have the server running (`npm run watch`)
 2. In the game, go to `Options` > `Remote API`
 3. Enter the `port` specified in th [filesync.json](./filesync.json) file (defaults to `12525`)
-4. Click `Connect`, there should be a toast notification indicating that the connection has been established
+4. Click `Connect`, there should be a green toast notification indicating that the connection has been established
 
 ## Imports
 
