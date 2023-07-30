@@ -144,18 +144,57 @@ const getTimes = (ns: NS, timings: Timings) => {
   return { hackString, growString, weakenString };
 };
 
-const printProfile = (ns: NS, profileTarget: string, profile: Profiling) => {
+const printProfile = async (
+  ns: NS,
+  profileTarget: string,
+  profile: Profiling
+) => {
   const {
     timings: showTimings,
     money: showMoney,
     misc: showMisc,
     security: showSecurity,
+    all: showAll,
   } = ns.flags([
     ["timings", false],
     ["money", false],
     ["misc", false],
     ["security", false],
+    ["all", false],
   ]);
+  if (!(showTimings || showMoney || showMisc || showSecurity || showAll)) {
+    let alert = "Run the script with the flags\n\n";
+    const margin = 15;
+
+    alert +=
+      "--timings" +
+      " ".repeat(margin - "--timings".length) +
+      "for the hack, grow and weaken timings\n";
+
+    alert +=
+      "--money" +
+      " ".repeat(margin - "--money".length) +
+      "for the server's max money and current money\n";
+
+    alert +=
+      "--security" +
+      " ".repeat(margin - "--security".length) +
+      "for the sever's security data and hack chance\n";
+
+    alert +=
+      "--misc" +
+      " ".repeat(margin - "--misc".length) +
+      "for other server information like needed ports\n";
+
+    alert +=
+      "--all" +
+      " ".repeat(margin - "--all".length) +
+      "for all the server information\n";
+
+    ns.tprint("\n\n" + alert);
+    ns.toast("No flag specified", ns.enums.ToastVariant.ERROR, 3000);
+    return;
+  }
   const { timings, misc, security, money } = profile;
 
   const column1Width = 17;
@@ -164,7 +203,7 @@ const printProfile = (ns: NS, profileTarget: string, profile: Profiling) => {
     "-".repeat(column1Width + column2Width) + (title ? title : "") + "\n";
 
   const lines = ["\n\n", `\tPROFILE OF: ${profileTarget}\n`];
-  if (showTimings) {
+  if (showTimings || showAll) {
     const { hackString, growString, weakenString } = timings;
     lines.push(
       ...[
@@ -175,7 +214,7 @@ const printProfile = (ns: NS, profileTarget: string, profile: Profiling) => {
       ]
     );
   }
-  if (showMoney) {
+  if (showMoney || showAll) {
     const { serverMaxMoney, serverCurrentMoney } = money;
     lines.push(
       ...[
@@ -185,7 +224,7 @@ const printProfile = (ns: NS, profileTarget: string, profile: Profiling) => {
       ]
     );
   }
-  if (showSecurity) {
+  if (showSecurity || showAll) {
     const { level, minLevel, hackChance } = security;
     lines.push(
       ...[
@@ -196,7 +235,7 @@ const printProfile = (ns: NS, profileTarget: string, profile: Profiling) => {
       ]
     );
   }
-  if (showMisc) {
+  if (showMisc || showAll) {
     const { attacking, rootAccess, portsRequired } = misc;
     lines.push(
       ...[
